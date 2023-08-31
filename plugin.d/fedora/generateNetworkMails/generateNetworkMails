@@ -1,0 +1,132 @@
+#!/bin/bash
+generateNetworkMails(){
+  # Проверяем, что у нас есть хотя бы один аргумент
+  if [[ $# -lt 1 ]]; then
+      echo "Пожалуйста, укажите хотя бы один аргумент"
+      exit 1
+  fi
+
+  # Выводим начало списка
+  jsonNetworks=$(echo -n '['
+
+  # Счетчик для проверки, является ли текущий элемент последним
+  count=1
+
+  # Обрабатываем каждый аргумент
+
+
+  for i in "$@"; do
+      # Выполняем запрос и выводим результат
+      curl --location -k "https://ipam.moscow.alfaintra.net:8443/api/ipam/prefixes/$i" \
+          --header 'Accept: application/json' \
+          --header 'Content-Type: application/json' \
+          --header "Authorization: $BearerToken"
+      # Проверяем, является ли текущий элемент последним
+      if [[ $count -lt $# ]]; then
+          echo -n ', ' # Если это не последний элемент, выводим запятую и пробел
+      fi
+
+      # Увеличиваем счетчик
+      count=$((count + 1))
+  done
+
+  # Выводим закрывающую скобку
+  echo ']')
+
+
+  defaultACLNetSec=""
+  dhcpWinSupprot=""
+  networkLanCO=""
+  helpersLanCO=""
+
+  jsonArrayLenght=$(echo $jsonNetworks | jq '. | length')
+
+  for (( i=0; i<${jsonArrayLenght}; i++ )); do
+      name=$(echo -e $jsonNetworks|jq -r ".[$i].vlan.name")
+      service_stage=$(echo -e $jsonNetworks|jq -r ".[$i].custom_fields.service_stage")
+      access_type=$(echo -e $jsonNetworks|jq -r ".[$i].custom_fields.access_type")
+      vlan_inside=$(echo -e $jsonNetworks|jq -r ".[$i].vlan.vid")
+      vlan_outside=$(echo -e $jsonNetworks|jq -r ".[$i].custom_fields.vlan_outside")
+      dcs=$(echo -e $jsonNetworks|jq -r ".[$i].description")
+      net=$(echo -e $jsonNetworks|jq -r ".[$i].display")
+      mask=`ipcalc $net|awk '/Netmask:/ {print $2}'`
+      gw=`ipcalc $net| awk '/HostMin:/ {print $2}'`
+      dhcp_pool_first=`echo -en "${net%.*}.";ipcalc $net|awk -F '.' '/HostMin:/ {print $NF+2}'`
+      dhcp_pool_last=`ipcalc $net|awk '/HostMax:/ {print $2}'`
+
+      case "$access_type$service_stage" in
+          "PVLANProd")
+              template="LAN2.0"
+              ;;
+          "PVLANTest")
+              template="LAN.9"
+              ;;
+          "DMZTEST")
+              template="DMZ.4"
+              ;;
+          "Prelive")
+              template="LAN.9"
+              ;;
+          "Prod")
+              template="LAN2.0"
+              ;;
+          *)
+              template="unknown"
+              ;;
+      esac
+      vlan_list="$vlan_list $vlan_inside"
+
+      defaultACLNetSec="""$defaultACLNetSec
+  Прошу применить к сети $net (vlan $vlan_inside $service_stage $access_type) Default ACL 1.1"""
+
+      dhcpWinSupprot="""$dhcpWinSupprot
+
+  Расположение подсети: $dcs.
+  Название: $name
+  Маска подсети: $mask
+  Шлюз: $gw
+  Диапазон адресов: $dhcp_pool_first - $dhcp_pool_last
+  Время аренды: 48ч
+  """
+
+      networkLanCO="""$networkLanCO
+  net $net
+  mask $mask
+  gw $gw
+  vlan $vlan_inside
+  по шаблону $template"""
+
+      helpersLanCO="""$helpersLanCO
+
+  Подсеть:
+  $name
+  VLAN INSIDE: $vlan_inside, VLAN OUTSIDE: $vlan_outside
+  $dcs
+  net $net
+  Маска подсети: $mask
+  Шлюз: $gw
+  """
+  done
+
+  networkOrNetworks="сеть"
+  subnetOrSubnets="подсеть"
+
+  if [[ $jsonArrayLenght -gt 1 ]]; then
+      networkOrNetworks="сети"
+      subnetOrSubnets="подсети"
+  fi
+
+
+  echo -e """
+  ------------------------------------------------
+  netsec | Default ACL 1.1 vlan$vlan_list
+  ------------------------------------------------
+  Здравствуйте.
+  $defaultACLNetSec
+  ------------------------------------------------
+  LAN_CO | Завести $subnetOrSubnets vlan$vlan_list
+  ------------------------------------------------
+  Добрый день, просьба завести $subnetOrSubnets:
+  $networkLanCO
+  """
+}

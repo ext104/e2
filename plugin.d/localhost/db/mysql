@@ -1,0 +1,2 @@
+#!/bin/bash
+alias mysql="mysql --prompt=\"`hostname` \c \d> \""

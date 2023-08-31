@@ -1,0 +1,4 @@
+#!/bin/bash
+hostMax(){
+  ipcalc "$1"|awk '/HostMax:/ {print $2}'
+}

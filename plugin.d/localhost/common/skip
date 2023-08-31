@@ -1,0 +1,7 @@
+#!/bin/bash
+function skip(){
+  for((i=0;$i<$1;i++))
+    do
+      echo -e "\n"
+    done
+}

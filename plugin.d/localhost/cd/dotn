@@ -1,0 +1,4 @@
+#!/bin/bash
+for i in {1..20}; do
+  alias .$i="$(python -c 'print('"'../'"''"*$i"')')"
+done

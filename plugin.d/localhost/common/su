@@ -1,0 +1,2 @@
+#!/bin/bash
+su() { if [[ $@ == "-" ]]; then command su "$@"; else command su -m "$@"; fi; }

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+source ~/e2/etc/e2.conf
+
+_e2_completion() {
+  local current_arg
+  local possible_args
+
+  current_arg="${COMP_WORDS[COMP_CWORD]}"
+  possible_args="version help plugins start reload"
+
+  COMPREPLY=($(compgen -W "$possible_args" -- "$current_arg"))
+}
+
+_e2_complete_command() {
+  local cur prev words cword
+  _get_comp_words_by_ref -n : cur prev words cword
+
+  case "$prev" in
+    e2)
+      _e2_completion
+      ;;
+    *)
+      ;;
+  esac
+}
+
+complete -F _e2_complete_command e2
+
+recursive_ls() {
+  local current_dir="$1"
+  local indentation="$2"
+
+  for entry in "$current_dir"/*; do
+    local entry_name=$(basename "$entry")
+    if [ -d "$entry" ]; then
+      echo -e "$indentation$entry_name:"
+      recursive_ls "$entry" "$indentation  "
+    else
+      echo -e "$indentation$entry_name"
+    fi
+  done
+}
+
+e2() {
+  case "$1" in
+    "start" | "run" | "reload")
+      for file in ${e2fs['sourceLocalhost']}; do source $file; done
+      for file in ${e2fs['sourceHostname']}; do source $file; done
+      ;;
+    "plugins")
+      recursive_ls "${e2fs['plugin.d']}" ""
+    ;;
+    "version" | "-v" | "--version")
+      echo -e "$EXTE_VERSION"
+    ;;
+    "" | "help" | "-h" | "--help" | *)
+      echo """Usage: e2 [--help] [--version] <command> [<args>]
+
+These are common e2 commands used:
+  version     get current version
+  help        get help
+  start       start e2
+  reload      reload e2
+  plugins     get loaded plugins
+"""
+    ;;
+  esac
+}

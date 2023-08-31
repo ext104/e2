@@ -1,0 +1,4 @@
+#!/bin/bash
+toUpperCase(){
+  echo $@|tr '[:lower:]' '[:upper:]'
+}

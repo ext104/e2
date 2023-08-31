@@ -1,0 +1,2 @@
+#!/bin/bash
+alias snxConnect='snx -s mypc.alfabank.ru -u U_062X4'
