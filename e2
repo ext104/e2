@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/e2/etc/e2.conf
+source ~/e2/e2.conf
 
 _e2_completion() {
   local current_arg
