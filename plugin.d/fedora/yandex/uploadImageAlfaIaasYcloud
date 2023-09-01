@@ -1,0 +1,4 @@
+#!/bin/bash
+uploadImageAlfaIaasYcloud(){
+aws --endpoint-url=https://storage.yandexcloud.net  s3 cp $1 s3://alfa-iaas-iaas-infra-images
+}
