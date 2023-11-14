@@ -1,0 +1,3 @@
+getVsphereImages(){
+/home/main/e2/./vsphere-vms-uuid -i -u 'iaas-tech-esx@moscow.alfaintra.net' -p $alfaVspherePassword -s 127.0.0.1:443
+}

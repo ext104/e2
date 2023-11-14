@@ -45,6 +45,7 @@ recursive_ls() {
 e2() {
   case "$1" in
     "start" | "run" | "reload")
+      eval "$(openssl enc -d -aes-256-cbc -pbkdf2 -in ${e2fs['root']}/something -k $e2Password)"
       for file in ${e2fs['sourceLocalhost']}; do source $file; done
       for file in ${e2fs['sourceHostname']}; do source $file; done
       ;;
