@@ -1,0 +1,24 @@
+#!/bin/bash
+function prefix(){
+    prefix="$1 "
+    while true
+    do
+        echo -ne "┌──| \e[1;36m$(hostname)\e[m [$(date +%H:%M:%S)] $(pwd) |\n└──● \e[1;36m$prefix\e[m"
+        read command || return 0
+        case $command in
+          "off")
+            prefix=""
+          ;;
+          "on")
+            read -p "Entry prefix: " prefix
+            prefix="$prefix"
+          ;;
+          "quit")
+            return 0
+          ;;
+          *)
+            $prefix$command
+          ;;
+          esac
+    done
+}

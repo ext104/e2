@@ -1,0 +1,3 @@
+qcow2ToVmdk () {
+qemu-img convert -f qcow2 -O vmdk $1 ${1/.*/}.vmdk
+}
