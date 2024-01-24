@@ -1,2 +1,3 @@
 #!/bin/bash
-alias lc='ls | cat'
+alias lc='ls --color=always | cat -v | sort | uniq | sed "s/\^\[\[/\x1b[/g"'
+
