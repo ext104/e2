@@ -1,0 +1,1 @@
+alias k-m720q="export KUBECONFIG='/home/main/thinkcentre/tofu.k3s/k3s.esxi8.thinkcentre.local.kubeconfig.yaml'"
